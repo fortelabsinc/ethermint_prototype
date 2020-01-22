@@ -1,0 +1,19 @@
+{
+	"folders": [
+		{
+			"path": "src/proto_app"
+		},
+		{
+			"path": "devops"
+		},
+		{
+			"path": "."
+		}
+	],
+	"files": [
+		{
+			"path": "ops"
+		}
+	],
+	"settings": {}
+}

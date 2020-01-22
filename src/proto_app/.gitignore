@@ -19,3 +19,6 @@ erl_crash.dump
 # Also ignore archive artifacts (built via "mix archive.build").
 *.ez
 
+# Don't save the elixir ls files.  Let those be local
+/.elixir_ls/
+

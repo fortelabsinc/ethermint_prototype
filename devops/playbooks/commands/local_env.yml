@@ -1,0 +1,32 @@
+---
+- hosts: localhost
+  gather_facts: false
+  vars:
+    ansible_python_interpreter: '/usr/bin/python3'
+  pre_tasks:
+
+    # Docker Pip module installation
+    - name: Check if docker pip module is installed
+      shell: |
+        pip list --format=legacy | grep docker
+      register: docker_status
+      changed_when: false
+      ignore_errors: true
+
+    - name: Installed Docker pip module if needed
+      shell: |
+        pip install --user docker
+      when: not docker_status.stdout
+    
+    # OpenShift Pip module installation
+    - name: Check if openshift pip module is installed
+      shell: |
+        pip list --format=legacy | grep openshift
+      register: openshift_status
+      changed_when: false
+      ignore_errors: true
+
+    - name: Installed openshift pip module if needed
+      shell: |
+        pip install --user openshift
+      when: not openshift_status.stdout

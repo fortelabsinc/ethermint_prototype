@@ -1,0 +1,260 @@
+#!/usr/bin/env python3
+
+#----------------------------------------------------------------------------
+# MIT License
+# 
+# Copyright (c) 2020 Forte Labs Inc.
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+#----------------------------------------------------------------------------
+
+#----------------------------------------------------------------------------
+# Deployment system for the Ethermint testing environment.
+#
+# This tool is used as a helper method for working in ethermint and will
+# allow for a repeatable process instead of having to remember all the direct
+# commands
+#----------------------------------------------------------------------------
+
+#----------------------------------------------------------------------------
+# Imported Libraries
+#----------------------------------------------------------------------------
+import sys
+import argparse
+import os
+import subprocess
+
+#----------------------------------------------------------------------------
+# Setup Commandline Processing
+#----------------------------------------------------------------------------
+parser = argparse.ArgumentParser('Ethermint Testing Environment Tool')
+
+# Because I am bad at remembers stuff, lets throw a "tips" block in
+parser.add_argument('--tips',
+                    help='Tips and examples of executing some common ops',
+                    action="store_true")
+
+parser.add_argument('--verbose',
+                    help='Runs the Ansible Commands in Full Verbose mode.  Helpful for debugging ansible playbooks but not much else.',
+                    action="store_true")
+
+parser.add_argument('--ansible_root',
+                    help='Set the path for the ansible playbooks. Useful for system development.  Default is ./ansible',
+                    action="store")
+
+parser.add_argument('--setup_local',
+                    help='Installs any additional Ansible packages needed.',
+                    action="store_true")
+
+parser.add_argument('--build_local',
+                    help='Build all local container',
+                    action="store_true")
+
+parser.add_argument('--app_dev',
+                    help='Compile the Application code on the host machine',
+                    action="store_true")
+
+parser.add_argument('--bot_dev',
+                    help='Compile the Bot code on the host machine',
+                    action="store_true")
+
+parser.add_argument('--unit_test_dev',
+                    help='Runs the unit tests using the host machine build and docker images of backend services (ethermint)',
+                    action="store_true")
+
+parser.add_argument('--user_test_dev',
+                    help='Runs the user tests using the docker image of the app server but the local build of the bot testing framework',
+                    action="store_true")
+
+parser.add_argument('--unit_test_local',
+                    help='Runs the unit tests using the docker built app and docker images of backend services (ethermint)',
+                    action="store_true")
+
+parser.add_argument('--user_test_local',
+                    help='Runs the user tests using the docker image of the app server and bot testing framework',
+                    action="store_true")
+
+parser.add_argument('--publish',
+                    help='Publish up all the images to a cloud Image register based on config file passed in',
+                    action="store")
+
+parser.add_argument('--list',
+                    help='List all deployments the account has access to',
+                    action="store")
+
+parser.add_argument('--deploy',
+                    help='Deploys a build up to the cloud',
+                    action="store")
+
+parser.add_argument('--validate',
+                    help='Validates a deployment works, etc',
+                    action="store")
+
+parser.add_argument('--update',
+                    help='updates the configuration of a deployment',
+                    action="store")
+
+parser.add_argument('--release',
+                    help='releases a deployment',
+                    action="store")
+
+#----------------------------------------------------------------------------
+# Parse the Commandline Arguments
+#----------------------------------------------------------------------------
+args = parser.parse_args()
+
+#----------------------------------------------------------------------------
+# Load some default arguments
+#----------------------------------------------------------------------------
+ansible_root = "./devops"
+
+if(None != args.ansible_root):
+    ansible_root = args.ansible_root
+
+verboseOpts = ''
+if(args.verbose):
+    verboseOpts = '-vvvv'
+
+#----------------------------------------------------------------------------
+# --tips Handler
+#----------------------------------------------------------------------------
+if args.tips:
+    print("""
+Ethermint Testing Environment Tool
+
+This tool was built to help me automate some of the common actions
+needed to execute this testing environment.  The motivation for this
+is 3 fold:
+
+* I forget stuff and while Runbooks are nice, writing them in development 
+  sucks
+* Sometimes one action takes multiple commandline steps and I am lazy
+* Running multiple commands is error prone so why risk screwing it up 
+
+Containers:
+
+Everything I am doing here is done via containers.  This is so I can 
+reproduce environments without having to have a bunch of stuff installed 
+locally and can create clean room environments if needed.
+
+-- build_local --------------------------------------------------------------
+
+This will build all the containers required for this system to run
+
+./ops --build_local
+
+""")
+
+#----------------------------------------------------------------------------
+# --setup_local
+#----------------------------------------------------------------------------
+elif args.setup_local:
+    print("Installing all packages needed by ansible (typically via pip3)")
+    os.system('pip install --user ansible')
+    cmd = '~/.local/bin/ansible-playbook -i {0}/inventory/hosts {0}/playbooks/commands/local_env.yml {1}'
+    os.system(cmd.format(ansible_root, verboseOpts))
+    print("setup_local complete.  Please make sure to add ~/.local/bin to your path or future commands will fail")
+    print("Also given the order of ops you may see some failures.  Try running command a second time and report back if failures persist")
+
+#----------------------------------------------------------------------------
+# --build_local Handler
+#----------------------------------------------------------------------------
+elif args.build_local:
+    print("Building the all the docker containers needed")
+    cmd = 'ansible-playbook -i {0}/inventory/hosts {0}/playbooks/commands/build.yml {1}'
+    os.system(cmd.format(ansible_root, verboseOpts))
+    print("Build Local Containers Completed!!")
+
+#----------------------------------------------------------------------------
+# --app_dev Handler
+#----------------------------------------------------------------------------
+elif args.app_dev:
+    print("NOT IMPLEMENTED")
+
+#----------------------------------------------------------------------------
+# --bot_dev Handler
+#----------------------------------------------------------------------------
+elif args.bot_dev:
+    print("NOT IMPLEMENTED")
+
+#----------------------------------------------------------------------------
+# --unit_test_dev Handler
+#----------------------------------------------------------------------------
+elif args.unit_test_dev:
+    print("NOT IMPLEMENTED")
+
+#----------------------------------------------------------------------------
+# --user_test_dev Handler
+#----------------------------------------------------------------------------
+elif args.user_test_dev:
+    print("NOT IMPLEMENTED")
+
+#----------------------------------------------------------------------------
+# --unit_test_local Handler
+#----------------------------------------------------------------------------
+elif args.unit_test_local:
+    print("NOT IMPLEMENTED")
+
+#----------------------------------------------------------------------------
+# --user_test_local Handler
+#----------------------------------------------------------------------------
+elif args.user_test_local:
+    print("NOT IMPLEMENTED")
+
+#----------------------------------------------------------------------------
+# --publish Handler
+#----------------------------------------------------------------------------
+elif NONE != args.publish:
+    print("NOT IMPLEMENTED")
+
+#----------------------------------------------------------------------------
+# --list Handler
+#----------------------------------------------------------------------------
+elif NONE != args.list:
+    print("NOT IMPLEMENTED")
+
+#----------------------------------------------------------------------------
+# --deploy Handler
+#----------------------------------------------------------------------------
+elif NONE != args.deploy:
+    print("NOT IMPLEMENTED")
+
+#----------------------------------------------------------------------------
+# --validate Handler
+#----------------------------------------------------------------------------
+elif NONE != args.validate:
+    print("NOT IMPLEMENTED")
+
+#----------------------------------------------------------------------------
+# --update Handler
+#----------------------------------------------------------------------------
+elif NONE != args.update:
+    print("NOT IMPLEMENTED")
+
+#----------------------------------------------------------------------------
+# --release Handler
+#----------------------------------------------------------------------------
+elif NONE != args.release:
+    print("NOT IMPLEMENTED")
+
+#----------------------------------------------------------------------------
+# Unknown Operation
+#----------------------------------------------------------------------------
+else:
+    print("Unknown Command")

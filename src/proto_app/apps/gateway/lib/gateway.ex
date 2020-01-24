@@ -13,6 +13,6 @@ defmodule Gateway do
 
   """
   def hello do
-    :world
+    Gateway.Portal.test()
   end
 end

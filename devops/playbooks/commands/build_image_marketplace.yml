@@ -1,0 +1,15 @@
+# Compiles and then creates the Marketplace image
+---
+- hosts: localhost
+  gather_facts: false
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    # Build vars needed for the build_application_tasks
+    container_space: forte
+    build_name: marketplace
+    container_name: marketplace
+    compiler_name: compiler
+
+  tasks:
+    - name: Include build tasks list
+      include_tasks: build_application_tasks.yml

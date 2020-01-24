@@ -1,0 +1,21 @@
+{
+	"folders": [
+		{
+			"path": "src/proto_app"
+		},
+		{
+			"path": "devops"
+		},
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"cSpell.words": [
+			"ansible",
+			"ethereum",
+			"ethermint",
+			"tendermint"
+		]
+	}
+}

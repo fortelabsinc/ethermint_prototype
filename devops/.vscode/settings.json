@@ -1,0 +1,20 @@
+{
+    "cSpell.ignoreWords": [
+        "app",
+        "deps",
+        "dpkg",
+        "emint",
+        "emintcli",
+        "emintd",
+        "gentx",
+        "gentxs",
+        "hostkey",
+        "iproute",
+        "laddr",
+        "noninteractive",
+        "openssl",
+        "proto",
+        "rebar",
+        "tzdata"
+    ]
+}

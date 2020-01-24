@@ -1,0 +1,76 @@
+---
+- name: Launch the Compiler Server and execute the build command
+  docker_container:
+    image: '{{ container_space }}/{{ compiler_name }}'
+    name: '{{ compiler_name }}'
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ../../../src:/src
+    command: sleep infinity
+
+- name: Add the Compiler container to Ansible Hosts
+  add_host:
+    hostname: '{{ compiler_name }}'
+    ansible_connection: docker
+    ansible_python_interpreter: /usr/bin/python3
+
+- name: Update packages and install needed tools
+  raw: |
+    apt-get update -y
+    apt-get upgrade -y
+    apt-get install -y git curl wget openssl iproute2
+    echo "LANG=en_US.UTF-8" > /etc/default/locale
+  delegate_to: '{{ compiler_name }}'
+  args:
+    executable: /bin/bash
+
+- name: 'Build the {{build_name}} release'
+  raw: |
+    cd /src/proto_app &&
+    mix deps.get --only prod &&
+    MIX_ENV=prod mix release {{ build_name }} --path ../{{ build_name }}
+  delegate_to: '{{ compiler_name }}'
+  args:
+    executable: /bin/bash
+
+- name: 'Create the new {{build_name}} to hold the build in'
+  docker_container:
+    image: ubuntu:18.04
+    name: '{{ container_name }}'
+    command: sleep infinity
+
+- name: 'Add the {{build_name}} container to Ansible Hosts'
+  add_host:
+    hostname: '{{ container_name }}'
+    ansible_connection: docker
+    ansible_python_interpreter: /usr/bin/python3
+
+- name: 'Copy over the build files for the {{build_name}} app to use'
+  raw: >
+    docker cp ../../../src/{{build_name}} {{container_name}}:/{{build_name}} 
+
+- name: Commit the Compiler Image to Docker
+  command: >
+    docker commit
+    -c 'CMD ["./{{build_name}}/bin/{{build_name}}", "start"]'
+    {{ container_name }} {{ container_space }}/{{ container_name }}
+
+- name: Cleanup build files
+  raw: |
+    cd /src/proto_app &&
+    rm -rf _build &&
+    rm -rf deps &&
+    rm -rf ../{{build_name}}
+  delegate_to: '{{ compiler_name }}'
+  args:
+    executable: /bin/bash
+
+- name: 'Stop the running {{build_name}} container'
+  docker_container:
+    name: '{{ container_name }}'
+    state: absent
+
+- name: Stop the running compiler container
+  docker_container:
+    name: '{{ compiler_name }}'
+    state: absent

@@ -10,10 +10,12 @@
 			"path": "."
 		}
 	],
-	"files": [
-		{
-			"path": "ops"
-		}
-	],
-	"settings": {}
+	"settings": {
+		"cSpell.words": [
+			"ansible",
+			"ethereum",
+			"ethermint",
+			"tendermint"
+		]
+	}
 }

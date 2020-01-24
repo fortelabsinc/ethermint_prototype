@@ -1,4 +1,4 @@
-# etherimt_prototype
+# ethermint_prototype
 
 Prototype of using Ethermint.
 
@@ -23,6 +23,23 @@ The following is a list of local software you will need to have installed to run
 * Python 3.6
 * Ansible 2.9
 * Docker for Desktop 
+
+NOTE:
+
+The software assumes that you have Python at version 3.6 so if you run `python --version` and get back 2.x then you need to switch your default python around. 
+
+### Set Default Python3 in Ubuntu Linux
+
+```
+sudo su
+update-alternatives --install /usr/bin/python python /usr/bin/python3 1
+```
+
+Also for Ubuntu I found you need to install the python3-pip lib
+
+```
+sudo apt-get install python3-pip
+```
 
 ## Application Server
 

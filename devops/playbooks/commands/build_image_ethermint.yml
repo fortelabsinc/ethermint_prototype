@@ -1,14 +1,13 @@
-# Build out Ethermint
 ---
 - hosts: localhost
   gather_facts: false
   vars:
+    container_folder: forte
     container_name: ethermint
     ansible_python_interpreter: /usr/bin/python3
     chain_key_name: local_ethermint_key
     chain_key_password: local_ethermint_password
     chain_moniker: local_ethermint_moniker
-    chain_master_container: ethermint_chain_name
     chain_id: 1   
 
   pre_tasks:
@@ -31,7 +30,7 @@
         name: '{{ container_name }}'
         state: absent
 
-    - name: Ensure Ptyhon is installed on Builder container
+    - name: Ensure Python is installed on Builder container
       raw: >
         apk update &&
         apk upgrade &&
@@ -89,7 +88,7 @@
       command: >
         docker commit
         -c 'CMD ["/usr/bin/emintd", "start", "--pruning=nothing"]'
-        {{ container_name }}_base {{ container_name }}_chain
+        {{ container_name }}_base {{ container_folder }}/{{ container_name }}_chain
     
     - name: Create Container for the Node
       docker_container:
@@ -103,7 +102,7 @@
         ansible_connection: docker
         ansible_python_interpreter: /usr/bin/python3
     
-    - name: Ensure Ptyhon is installed on Node container
+    - name: Ensure Python is installed on Node container
       raw: >
         apk update &&
         apk upgrade &&
@@ -128,8 +127,8 @@
     - name: Commit the Node container to docker.
       command: >
         docker commit
-        -c 'CMD ["/usr/bin/emintcli", "rest-server", "--laddr", "\"tcp://{{ chain_master_container }}:8545\"", "--unlock-key", "{{chain_key_name}}"]'
-        {{ container_name }}_node {{ container_name }}_node
+        -c 'CMD ["/usr/bin/emintcli", "rest-server", "--laddr", "\"tcp://emint_chain:8545\"", "--unlock-key", "{{chain_key_name}}"]'
+        {{ container_name }}_node {{ container_folder }}/{{ container_name }}_node
 
   post_tasks: 
     - name: Remove the Node container

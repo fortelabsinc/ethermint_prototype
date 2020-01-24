@@ -1,0 +1,64 @@
+# Creates the Compiler Container to compile our software.  The build module will be based on ubuntu for now
+---
+- hosts: localhost
+  gather_facts: false
+  vars:
+    container_space: forte
+    container_name: compiler
+    ansible_python_interpreter: /usr/bin/python3
+
+  pre_tasks:
+    - name: Create and start the Builder container
+      docker_container:
+        image: ubuntu:18.04
+        name: '{{ container_name }}'
+        volumes:
+          - /var/run/docker.sock:/var/run/docker.sock
+          - ../../../src:/src
+        command: sleep infinity
+
+    - name: Add the new Compiler container to Ansible Hosts
+      add_host:
+        hostname: '{{ container_name }}'
+        ansible_connection: docker
+        ansible_python_interpreter: /usr/bin/python3
+
+    - name: Install Base packages
+      raw: |
+        apt-get update -y &&
+        apt-get upgrade -y &&
+        export DEBIAN_FRONTEND=noninteractive &&
+        apt-get -y install wget curl git build-essential openssl language-pack-en tzdata --fix-missing &&
+        echo "LANG=en_US.UTF-8" > /etc/default/locale
+      delegate_to: '{{ container_name }}'
+      args:
+        executable: /bin/bash
+        
+    #- name: Setup language pack 
+    #  raw: |
+    #    locale-gen "en_US.UTF-8" &&
+    #    dpkg-reconfigure locales &&
+    #    update-local=en_US.UTF-8
+    #  delegate_to: '{{ container_name }}'
+
+    - name: Install Elixir and Erlang Packages
+      raw: |
+        wget https://packages.erlang-solutions.com/erlang-solutions_2.0_all.deb && 
+        dpkg -i erlang-solutions_2.0_all.deb
+        apt-get -y update &&
+        apt-get -y install elixir &&
+        mix local.hex --force &&
+        mix local.rebar --force
+      delegate_to: '{{ container_name }}'
+
+    - name: Commit the Compiler Image to Docker
+      command: >
+        docker commit
+        -c 'CMD ["sleep", "infinity"]'
+        {{ container_name }} {{ container_space }}/{{ container_name }}
+
+  post_tasks:
+    - name: Stop the currently running container
+      docker_container:
+        name: '{{ container_name }}'
+        state: absent
